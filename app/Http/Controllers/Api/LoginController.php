@@ -14,7 +14,7 @@ class LoginController extends Controller
     public function login(Request $request)
     {
         $rules = [
-            'email' => ['required', 'email', 'exists:users,email'],
+            'email' => ['required', 'email'],
             'password' => ['required', 'string', 'min:8'],
             'device_name' => ['required', 'string'],
         ];
@@ -22,23 +22,31 @@ class LoginController extends Controller
         $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
+
             return response()->json([
                 'status' => false,
-                'code' => Response::HTTP_UNPROCESSABLE_ENTITY,
                 'messages' => $validator->errors()
-            ]);
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         $user = User::query()
             ->where('email', $request->email)
             ->first();
 
-        return response()->json([
-            'status' => true,
-            'code' => Response::HTTP_OK,
-            'message' => 'logged in',
-            'token' => $user->createToken($request->device_name)->plainTextToken,
-        ]);
+        if ($user) {
+
+            return response()->json([
+                'status' => true,
+                'message' => 'logged in',
+                'token' => $user->createToken($request->device_name)->plainTextToken,
+            ], Response::HTTP_OK);
+        } else {
+
+            return response()->json([
+                'status' => false,
+                'message' => 'your email is not registered',
+            ], Response::HTTP_NOT_FOUND);
+        }
     }
 
     public function logout()
@@ -47,8 +55,7 @@ class LoginController extends Controller
 
         return response()->json([
             'status' => true,
-            'code' => Response::HTTP_OK,
             'message' => 'logged out, see you later!',
-        ]);
+        ], Response::HTTP_OK);
     }
 }

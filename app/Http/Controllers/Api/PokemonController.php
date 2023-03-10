@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Validator;
 
 class PokemonController extends Controller
@@ -23,11 +22,11 @@ class PokemonController extends Controller
         $validator = Validator::make($request->only(['limit', 'offset']), $rules);
 
         if ($validator->fails()) {
+
             return response()->json([
                 'status' => false,
-                'code' => Response::HTTP_UNPROCESSABLE_ENTITY,
                 'messages' => $validator->errors()
-            ]);
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         $response = Http::withToken($request->bearerToken())
@@ -42,8 +41,7 @@ class PokemonController extends Controller
 
         return response()->json([
             'status' => true,
-            'code' => Response::HTTP_OK,
             'messages' => 'success'
-        ]);
+        ], Response::HTTP_OK);
     }
 }
